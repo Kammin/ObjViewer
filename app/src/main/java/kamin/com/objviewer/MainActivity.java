@@ -6,16 +6,33 @@ import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private GLSurfaceView glSurfaceView;
-
+    OpenGLRenderer openGLRenderer;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        openGLRenderer = new OpenGLRenderer(this);
+        View.OnTouchListener onTouchListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                float start = 0f;
+                if(motionEvent.getAction()==MotionEvent.ACTION_POINTER_DOWN){
+                    start = motionEvent.getX();
+                }
+                if(motionEvent.getAction()==MotionEvent.ACTION_MOVE){
+
+                }
+                return true;
+            }
+        };
         if (!supportES3()) {
             Toast.makeText(this, "OpenGl ES 3.0 is not supported", Toast.LENGTH_LONG).show();
             finish();
@@ -23,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
         }
         glSurfaceView = new GLSurfaceView(this);
         glSurfaceView.setEGLContextClientVersion(3);
-        glSurfaceView.setRenderer(new OpenGLRenderer());
+        glSurfaceView.setRenderer(openGLRenderer);
+        glSurfaceView.setOnTouchListener(onTouchListener);
         setContentView(glSurfaceView);
     }
 
