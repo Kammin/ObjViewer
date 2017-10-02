@@ -6,7 +6,6 @@ import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         glSurfaceView = new GLSurfaceView(this);
-        glSurfaceView.setEGLContextClientVersion(3);
+        glSurfaceView.setEGLContextClientVersion(2);
         glSurfaceView.setRenderer(openGLRenderer);
         glSurfaceView.setOnTouchListener(onTouchListener);
         setContentView(glSurfaceView);
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityManager activityManager =
                 (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-        return (configurationInfo.reqGlEsVersion >= 0x30000);
+        return (configurationInfo.reqGlEsVersion >= 0x20000);
     }
 
 

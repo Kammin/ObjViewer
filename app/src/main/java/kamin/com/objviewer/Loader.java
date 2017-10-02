@@ -42,18 +42,18 @@ public class Loader {
     }
 
     public FloatBuffer LoadBuff(File file) {
-        try {
-            RandomAccessFile rFile = new RandomAccessFile(file, "rw");
-            if (file.exists()) {
-                FileChannel inChannel = rFile.getChannel();
-                ByteBuffer buf_in = ByteBuffer.allocateDirect((int) file.length()).order(ByteOrder.nativeOrder());
-                inChannel.read(buf_in);
-                buf_in.rewind();
-                FloatBuffer result = buf_in.asFloatBuffer();
-                inChannel.close();
-                return result;
-            } else
-                Log.d("File1 ", "not exist " + file.getAbsolutePath());
+            try {
+                RandomAccessFile rFile = new RandomAccessFile(file, "rw");
+                if (file.exists()) {
+                    FileChannel inChannel = rFile.getChannel();
+                    ByteBuffer buf_in = ByteBuffer.allocateDirect((int) file.length()).order(ByteOrder.nativeOrder());
+                    inChannel.read(buf_in);
+                    buf_in.rewind();
+                    FloatBuffer result = buf_in.asFloatBuffer();
+                    inChannel.close();
+                    return result;
+                } else
+                    Log.d("File1 ", "not exist " + file.getAbsolutePath());
         } catch (IOException ex) {
             System.err.println(ex.getMessage());
         }
@@ -92,6 +92,12 @@ public class Loader {
                         vnList.add(s);
                     }
                 }
+                if (line.startsWith("f ")) {
+                    lineArray = line.substring(2).trim().split(" ");
+                    for (String s : lineArray) {
+                    }
+                }
+
             }
 
             bufferedReader.close();

@@ -1,7 +1,7 @@
 package kamin.com.objviewer;
 
 import android.content.Context;
-import android.opengl.GLES30;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
@@ -11,6 +11,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -39,7 +40,6 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     private float[] resultMatrix = new float[16];
 
 
-
     public OpenGLRenderer(Context context) {
         this.context = context;
         loader = new Loader(context);
@@ -50,7 +50,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     private void bindData() {
         aPositionLocation = glGetAttribLocation(programId, "a_Position");
         vertexData.position(0);
-        glVertexAttribPointer(aPositionLocation, 3, GLES30.GL_FLOAT,
+        glVertexAttribPointer(aPositionLocation, 3, GLES20.GL_FLOAT,
                 false, 0, vertexData);
 
         // цвет
@@ -81,20 +81,19 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         File file = loader.parse(R.raw.cube)[0];
         vertexData = loader.LoadBuff(file);
-        for(int i =0;i<vertexData.capacity();i++){
-            Log.d("vertexData"," "+i+" "+vertexData.get(i));
+        for (int i = 0; i < vertexData.capacity(); i++) {
+            Log.d("vertexData", " " + i + " " + vertexData.get(i));
         }
 
     }
 
     public void createViewMatrix() {
         // точка положения камеры
-        float coef = (float)(SystemClock.uptimeMillis() % 10000) / 10000;
-        float angle = coef  *  2 * 3.1415926f;
+        float coef = (float) (SystemClock.uptimeMillis() % 10000) / 10000;
+        float angle = coef * 2 * 3.1415926f;
         float eyeX = (float) (Math.cos(angle) * 4f);
         float eyeY = 3;
         float eyeZ = (float) (Math.sin(angle) * 4f);
-        Log.d("motionEvent",""+coef);
 
         // точка направления камеры
         float centerX = 0;
@@ -138,8 +137,8 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
-        GLES30.glClearColor(0f, 0f, 0f, 1f);
-        GLES30.glEnable(GLES30.GL_DEPTH_TEST);
+        GLES20.glClearColor(0f, 0f, 0f, 1f);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         programId = Utils.createProgram(context, R.raw.vertex_shader, R.raw.fragment_shader);
         glUseProgram(programId);
         prepareData();
@@ -148,7 +147,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int i, int i1) {
-        GLES30.glViewport(0, 0, i, i1);
+        GLES20.glViewport(0, 0, i, i1);
         createProjectionMatrix(i, i1);
     }
 
@@ -156,24 +155,35 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl10) {
         createViewMatrix();
         bindMatrix();
-        GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT |GLES30.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
         glEnableVertexAttribArray(aPositionLocation);
+
         glUniform4f(uColorLocation, 0.0f, 1.0f, 0.0f, 1.0f);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 3);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 1, 4);
+        //short[] sh = new short[]{1,2,3, 3,2,4, 3,4,5, 5,4,6, 5,6,7, 7,6,8, 7,8,1, 1,8,2, 2,8,4, 4,8,6, 7,1,5, 5,1,3};
+        //short[] sh =   new short[]{1,2,3, 3,2,4, 3,4,5, 5,4,6, 5,6,7, 7,6,8, 7,8,1, 1,8,2, 2,8,4, 4,8,6, 7,1,5, 5,1,3};
+        short[] sh = new short[]{1, 2, 3, 3, 2, 4, 3, 4, 5, 5, 4, 6, 5, 6, 7, 7, 6, 8, 7, 8, 1, 1, 8, 2, 2, 8, 4, 4, 8, 6, 7, 1, 5, 5, 1, 3};
+        for (int i = 0; i < sh.length; i++) {
+            sh[i] -= 1;
+        }
+        glUniform4f(uColorLocation, 0.8f, 0.8f, 0.8f, 1.0f);
+        Log.d("", "capas1 ");
+        ShortBuffer sb = ShortBuffer.wrap(sh);
+        //GLES20.glDrawElements(GLES20.GL_TRIANGLES, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
+        glUniform4f(uColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+        GLES20.glDrawElements(GLES20.GL_LINE_STRIP, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
+        GLES20.glDrawElements(GLES20.GL_LINE_STRIP, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
+        //  }
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 1, 4);
 
         glUniform4f(uColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 2, 5);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 3, 6);
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 2, 5);
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 4, 7);
 
         glUniform4f(uColorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 4, 7);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 5, 8);
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 4, 7);
+        // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 5, 8);
 
-        glUniform4f(uColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 6, 9);
-        GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 7, 10);
 
     }
 }
