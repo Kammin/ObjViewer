@@ -13,6 +13,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 public class Loader {
     Context context;
     FloatBuffer floatBuffer;
+    ShortBuffer shortBuffer;
     File file;
     public Loader(Context context){
         this.context = context;
@@ -41,7 +43,23 @@ public class Loader {
         }
     }
 
-    public FloatBuffer LoadBuff(File file) {
+    private void writeToFile(ShortBuffer shortBuffer, File file) {
+        file.delete();
+        try {
+            RandomAccessFile aFile = new RandomAccessFile(file, "rw");
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(shortBuffer.capacity() * 2).order(ByteOrder.nativeOrder());
+            byteBuffer.asShortBuffer().put(shortBuffer);
+            FileChannel channel = aFile.getChannel();
+            channel.write(byteBuffer);
+            channel.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public FloatBuffer LoadFloatBuffer(File file) {
             try {
                 RandomAccessFile rFile = new RandomAccessFile(file, "rw");
                 if (file.exists()) {
@@ -60,13 +78,35 @@ public class Loader {
         return null;
     }
 
+    public ShortBuffer LoadShortBuffer(File file) {
+        try {
+            RandomAccessFile rFile = new RandomAccessFile(file, "rw");
+            if (file.exists()) {
+                FileChannel inChannel = rFile.getChannel();
+                ByteBuffer buf_in = ByteBuffer.allocateDirect((int) file.length()).order(ByteOrder.nativeOrder());
+                inChannel.read(buf_in);
+                buf_in.rewind();
+                ShortBuffer result = buf_in.asShortBuffer();
+                inChannel.close();
+                return result;
+            } else
+                Log.d("File1 ", "not exist " + file.getAbsolutePath());
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
+        return null;
+    }
+
     public File[] parse(int fileRes) {
-        File[] files = new File[3];
+        File[] files = new File[6];
         String fileEntryName = context.getResources().getResourceEntryName(fileRes);
         Log.d("COUNT ", "START");
         List<String> vList = new ArrayList<>();
         List<String> vtList = new ArrayList<>();
         List<String> vnList = new ArrayList<>();
+        List<String> vpList = new ArrayList<>();
+        List<String> tpList = new ArrayList<>();
+        List<String> npList = new ArrayList<>();
         String[] lineArray;
         InputStream inputStream = context.getResources().openRawResource(fileRes);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -95,6 +135,10 @@ public class Loader {
                 if (line.startsWith("f ")) {
                     lineArray = line.substring(2).trim().split(" ");
                     for (String s : lineArray) {
+                        String[] points = s.split("/");
+                        vpList.add(points[0]);
+                        tpList.add(points[1]);
+                        npList.add(points[2]);
                     }
                 }
 
@@ -135,6 +179,36 @@ public class Loader {
         file = new File(context.getFilesDir() + File.separator + fileEntryName+".vt");
         writeToFile(floatBuffer, file);
         files[2]=file;
+
+        Log.d("COUNT ", "START VP "+vpList.size());
+        shortBuffer = ShortBuffer.allocate(vpList.size());
+        short[] vp = new short[vpList.size()];
+        for (int i = 0; i < vpList.size(); i++) {
+            shortBuffer.put(i, (short)(Short.valueOf(vpList.get(i))-1));
+        }
+        file = new File(context.getFilesDir() + File.separator + fileEntryName+".vp");
+        writeToFile(shortBuffer, file);
+        files[3]=file;
+
+        Log.d("COUNT ", "START TP");
+        shortBuffer = ShortBuffer.allocate(tpList.size());
+        short[] tp = new short[tpList.size()];
+        for (int i = 0; i < tpList.size(); i++) {
+            shortBuffer.put(i, Short.valueOf(tpList.get(i)));
+        }
+        file = new File(context.getFilesDir() + File.separator + fileEntryName+".tp");
+        writeToFile(shortBuffer, file);
+        files[4]=file;
+
+        Log.d("COUNT ", "START NP");
+        shortBuffer = ShortBuffer.allocate(npList.size());
+        short[] np = new short[npList.size()];
+        for (int i = 0; i < npList.size(); i++) {
+            shortBuffer.put(i, Short.valueOf(npList.get(i)));
+        }
+        file = new File(context.getFilesDir() + File.separator + fileEntryName+".np");
+        writeToFile(shortBuffer, file);
+        files[5]=file;
 
         Log.d("COUNT ", "END");
       return  files;

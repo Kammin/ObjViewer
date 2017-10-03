@@ -30,7 +30,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     private int programId;
     private FloatBuffer vertexData, vertexAxisData;
-
+    private ShortBuffer sb;
     private int uColorLocation;
     private int aPositionLocation;
     private int uMatrixLocation;
@@ -43,7 +43,6 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     public OpenGLRenderer(Context context) {
         this.context = context;
         loader = new Loader(context);
-        prepareData();
     }
 
 
@@ -79,10 +78,12 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
                 .asFloatBuffer();
         vertexAxisData.put(verticesAxis);
 
-        File file = loader.parse(R.raw.cube)[0];
-        vertexData = loader.LoadBuff(file);
-        for (int i = 0; i < vertexData.capacity(); i++) {
-            Log.d("vertexData", " " + i + " " + vertexData.get(i));
+        File[] files = loader.parse(R.raw.cube);
+        vertexData = loader.LoadFloatBuffer(files[0]);
+        sb = loader.LoadShortBuffer(files[3]);
+
+        for (int i = 0; i < sb.capacity(); i++) {
+            Log.d("vertexData", " " + i + " " + sb.get(i));
         }
 
     }
@@ -162,17 +163,15 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
         glUniform4f(uColorLocation, 0.0f, 1.0f, 0.0f, 1.0f);
         //short[] sh = new short[]{1,2,3, 3,2,4, 3,4,5, 5,4,6, 5,6,7, 7,6,8, 7,8,1, 1,8,2, 2,8,4, 4,8,6, 7,1,5, 5,1,3};
         //short[] sh =   new short[]{1,2,3, 3,2,4, 3,4,5, 5,4,6, 5,6,7, 7,6,8, 7,8,1, 1,8,2, 2,8,4, 4,8,6, 7,1,5, 5,1,3};
-        short[] sh = new short[]{1, 2, 3, 3, 2, 4, 3, 4, 5, 5, 4, 6, 5, 6, 7, 7, 6, 8, 7, 8, 1, 1, 8, 2, 2, 8, 4, 4, 8, 6, 7, 1, 5, 5, 1, 3};
-        for (int i = 0; i < sh.length; i++) {
+        //short[] sh = new short[]{1, 2, 3, 3, 2, 4, 3, 4, 5, 5, 4, 6, 5, 6, 7, 7, 6, 8, 7, 8, 1, 1, 8, 2, 2, 8, 4, 4, 8, 6, 7, 1, 5, 5, 1, 3};
+/*        for (int i = 0; i < sh.length; i++) {
             sh[i] -= 1;
-        }
-        glUniform4f(uColorLocation, 0.8f, 0.8f, 0.8f, 1.0f);
-        Log.d("", "capas1 ");
-        ShortBuffer sb = ShortBuffer.wrap(sh);
-        //GLES20.glDrawElements(GLES20.GL_TRIANGLES, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
+        }*/
+        glUniform4f(uColorLocation, 0.8f, 0.8f, 0.8f, 0.3f);
+        //ShortBuffer sb = ShortBuffer.wrap(sh);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
         glUniform4f(uColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-        GLES20.glDrawElements(GLES20.GL_LINE_STRIP, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
-        GLES20.glDrawElements(GLES20.GL_LINE_STRIP, sb.capacity(), GLES20.GL_UNSIGNED_SHORT, sb);
+        //GLES20.glDrawElements(GLES20.GL_LINES, 4, GLES20.GL_UNSIGNED_SHORT, sb);
         //  }
         // GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 1, 4);
 
